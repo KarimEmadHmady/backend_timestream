@@ -130,6 +130,14 @@ router.get('/all-users', async (req, res) => {
 });
 
 
+app.delete('/clear', async (req, res) => {
+  try {
+    await CheckInOut.deleteMany({});  // This deletes all data in the CheckInOut collection
+    res.status(200).json({ message: 'All records deleted successfully.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to delete records', error });
+  }
+});
 
 
 
