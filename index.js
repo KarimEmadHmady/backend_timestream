@@ -20,27 +20,27 @@ app.use(express.json()); // Parses incoming JSON requests
 app.use(cors()); // Allows cross-origin requests
 app.use(cookieParser()); // Parses cookies sent in requests
 
-app.use((req, res, next) => {
-  const allowedIP = '192.168.1.100';  // Replace with your home network's IP address
-  const clientIP = req.ip || req.connection.remoteAddress;
-
-  if (clientIP.includes(allowedIP)) {
-    next(); // Allow access
-  } else {
-    res.status(403).send('Access Denied: You are not on the allowed network.');
-  }
-});
-
 // app.use((req, res, next) => {
-//   const allowedIPs = ['154.176.210.135'];  // Replace with the list of allowed IPs // , '192.168.1.101', '192.168.1.102'
-//   const clientIP = req.headers['x-forwarded-for'] || req.ip || req.connection.remoteAddress;
+//   const allowedIP = '192.168.1.100';  // Replace with your home network's IP address
+//   const clientIP = req.ip || req.connection.remoteAddress;
 
-//   if (allowedIPs.some(ip => clientIP.includes(ip))) {
+//   if (clientIP.includes(allowedIP)) {
 //     next(); // Allow access
 //   } else {
 //     res.status(403).send('Access Denied: You are not on the allowed network.');
 //   }
 // });
+
+app.use((req, res, next) => {
+  const allowedIPs = ['154.176.210.135'];  // Replace with the list of allowed IPs // , '192.168.1.101', '192.168.1.102'
+  const clientIP = req.headers['x-forwarded-for'] || req.ip || req.connection.remoteAddress;
+
+  if (allowedIPs.some(ip => clientIP.includes(ip))) {
+    next(); // Allow access
+  } else {
+    res.status(403).send('Access Denied: You are not on the allowed network.');
+  }
+});
 
 
 // Connect to MongoDB
