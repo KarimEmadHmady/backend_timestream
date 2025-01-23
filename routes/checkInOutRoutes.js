@@ -129,7 +129,7 @@ router.get('/all-users', async (req, res) => {
   }
 });
 
-//https://backend-timestream.vercel.app/api/checkinout/clear
+
 router.delete('/clear', async (req, res) => {
   try {
     await CheckInOut.deleteMany({});  // This deletes all data in the CheckInOut collection
