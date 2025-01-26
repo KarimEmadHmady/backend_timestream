@@ -32,7 +32,7 @@ app.use(cookieParser()); // Parses cookies sent in requests
 // });
 
 app.use((req, res, next) => {
-  const allowedIPs = ['154.176.210.135' , '156.196.174.114'];  // Replace with the list of allowed IPs // , '192.168.1.101', '192.168.1.102'
+  const allowedIPs = ['154.176.210.135' , '156.196.174.114', '156.196.6.186'];  // Replace with the list of allowed IPs // , '192.168.1.101', '192.168.1.102'
   const clientIP = req.headers['x-forwarded-for'] || req.ip || req.connection.remoteAddress;
 
   if (allowedIPs.some(ip => clientIP.includes(ip))) {
