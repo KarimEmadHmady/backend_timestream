@@ -161,7 +161,7 @@ router.post("/checkin", async (req, res) => {
       firstName,
       lastName,
       email,
-      checkInTime: new Date(checkInTime),
+      checkInTime: new Date(checkInTime).toISOString(),
       status: "checked-in",
       date: new Date(),
     });
@@ -188,7 +188,7 @@ router.post("/checkout", async (req, res) => {
       userId,
       date: { $gte: startOfDay, $lt: endOfDay },
       status: "checked-in",
-    });
+    }).sort({ checkInTime: -1 });
 
     if (!checkInRecord) {
       return res.status(404).json({ error: "No check-in record found for this user today" });
