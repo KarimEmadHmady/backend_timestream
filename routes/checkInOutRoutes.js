@@ -57,20 +57,16 @@ router.post("/checkout", async (req, res) => {
       return res.status(400).json({ error: "User already checked out today" });
     }
 
-    const checkOutTime = moment().tz(timezone);
-    const checkInTime = moment(checkInRecord.checkInTime).tz(timezone);
-
-    const duration = moment.duration(checkOutTime.diff(checkInTime));
-    const hours = Math.floor(duration.asHours());
-    const minutes = Math.floor(duration.asMinutes()) % 60;
-
-    checkInRecord.checkOutTime = checkOutTime.toISOString();
+    const checkOutTime = moment().tz(timezone).toISOString();
+    checkInRecord.checkOutTime = checkOutTime;
     checkInRecord.status = "checked-out";
 
     await checkInRecord.save();
 
     res.status(200).json({
-      message: `Checkout successful. Total time: ${hours} hour(s) and ${minutes} minute(s)`,
+      message: "Checkout successful",
+      checkInTime: checkInRecord.checkInTime,
+      checkOutTime: checkInRecord.checkOutTime, // تأكد من إرجاع وقت الخروج المسجل
     });
   } catch (error) {
     console.error("Error in checkout route:", error);
