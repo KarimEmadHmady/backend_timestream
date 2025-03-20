@@ -82,10 +82,20 @@ router.get("/history/:userId", async (req, res) => {
   try {
     const thirtyDaysAgo = moment().tz(timezone).subtract(30, "days").toISOString();
 
-    const records = await CheckInOut.find({
+    let records = await CheckInOut.find({
       userId,
       date: { $gte: thirtyDaysAgo },
     }).sort({ date: -1 });
+
+    // تعديل التواريخ بحيث تكون بالمنطقة الزمنية الصحيحة قبل إرسالها إلى الفرونت
+    records = records.map((record) => ({
+      ...record._doc,
+      checkInTime: moment(record.checkInTime).tz(timezone).format("YYYY-MM-DD hh:mm A"),
+      checkOutTime: record.checkOutTime
+        ? moment(record.checkOutTime).tz(timezone).format("YYYY-MM-DD hh:mm A")
+        : null,
+      date: moment(record.date).tz(timezone).format("YYYY-MM-DD hh:mm A"),
+    }));
 
     console.log(records);
     res.status(200).json(records);
