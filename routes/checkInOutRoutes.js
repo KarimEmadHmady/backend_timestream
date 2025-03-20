@@ -1,26 +1,28 @@
 const express = require("express");
 const router = express.Router();
 const CheckInOut = require("../models/CheckInOut");
-const moment = require("moment");
+const moment = require("moment-timezone");
 
+// ضبط المنطقة الزمنية لمصر
+const timezone = "Africa/Cairo";
+
+// تسجيل الدخول (Check-in)
 router.post("/checkin", async (req, res) => {
   const { userId, firstName, lastName, email, checkInTime } = req.body;
 
   if (!userId || !checkInTime) {
-    return res
-      .status(400)
-      .json({ error: "User ID and check-in time are required" });
+    return res.status(400).json({ error: "User ID and check-in time are required" });
   }
 
   try {
-    const currentTime = new Date();
-
+    const currentTime = moment().tz(timezone).toISOString();
+    
     const checkInRecord = new CheckInOut({
       userId,
       firstName,
       lastName,
       email,
-      checkInTime,
+      checkInTime: moment(checkInTime).tz(timezone).toISOString(),
       status: "checked-in",
       date: currentTime,
     });
@@ -33,12 +35,13 @@ router.post("/checkin", async (req, res) => {
   }
 });
 
+// تسجيل الخروج (Check-out)
 router.post("/checkout", async (req, res) => {
   const { userId } = req.body;
 
   try {
-    const startOfDay = new Date().setHours(0, 0, 0, 0);
-    const endOfDay = new Date().setHours(23, 59, 59, 999);
+    const startOfDay = moment().tz(timezone).startOf('day').toISOString();
+    const endOfDay = moment().tz(timezone).endOf('day').toISOString();
 
     const checkInRecord = await CheckInOut.findOne({
       userId,
@@ -47,22 +50,19 @@ router.post("/checkout", async (req, res) => {
     });
 
     if (!checkInRecord) {
-      return res
-        .status(404)
-        .json({ error: "No check-in record found for this user today" });
+      return res.status(404).json({ error: "No check-in record found for this user today" });
     }
 
     if (checkInRecord.status === "checked-out") {
       return res.status(400).json({ error: "User already checked out today" });
     }
 
-    const checkOutTime = new Date();
-    const checkInTime = new Date(checkInRecord.checkInTime);
+    const checkOutTime = moment().tz(timezone);
+    const checkInTime = moment(checkInRecord.checkInTime).tz(timezone);
 
-    const totalTimeInMilliseconds = checkOutTime - checkInTime;
-    const totalTimeInMinutes = Math.floor(totalTimeInMilliseconds / 60000);
-    const hours = Math.floor(totalTimeInMinutes / 60);
-    const minutes = totalTimeInMinutes % 60;
+    const duration = moment.duration(checkOutTime.diff(checkInTime));
+    const hours = Math.floor(duration.asHours());
+    const minutes = Math.floor(duration.asMinutes()) % 60;
 
     checkInRecord.checkOutTime = checkOutTime.toISOString();
     checkInRecord.status = "checked-out";
@@ -78,24 +78,20 @@ router.post("/checkout", async (req, res) => {
   }
 });
 
-// return last 30 day and this is correct
+// استرجاع السجل لآخر 30 يومًا
 router.get("/history/:userId", async (req, res) => {
   const { userId } = req.params;
   console.log(`Fetching history for user: ${userId}`);
 
   try {
-    // Calculate the date 30 days ago
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const thirtyDaysAgo = moment().tz(timezone).subtract(30, "days").toISOString();
 
-    // Fetch records from the last 30 days for the given user
     const records = await CheckInOut.find({
       userId,
       date: { $gte: thirtyDaysAgo },
     }).sort({ date: -1 });
 
     console.log(records);
-
     res.status(200).json(records);
   } catch (error) {
     console.error(error);
@@ -103,6 +99,7 @@ router.get("/history/:userId", async (req, res) => {
   }
 });
 
+// جلب جميع المستخدمين
 router.get("/all-users", async (req, res) => {
   try {
     const users = await CheckInOut.aggregate([
@@ -121,6 +118,7 @@ router.get("/all-users", async (req, res) => {
   }
 });
 
+// مسح جميع السجلات
 router.delete("/clear", async (req, res) => {
   try {
     await CheckInOut.deleteMany({});
