@@ -197,7 +197,9 @@ router.post("/checkout", async (req, res) => {
       return res.status(400).json({ error: "User already checked out today" });
     }
 
-    checkInRecord.checkOutTime = new Date(checkOutTime).toISOString(),
+    // ✅ تعريف checkOutTime قبل الاستخدام
+    const checkOutTime = new Date().toISOString();
+    checkInRecord.checkOutTime = checkOutTime;
     checkInRecord.status = "checked-out";
 
     await checkInRecord.save();
@@ -212,6 +214,7 @@ router.post("/checkout", async (req, res) => {
     res.status(500).json({ error: "Failed to record check-out" });
   }
 });
+
 
 
 
