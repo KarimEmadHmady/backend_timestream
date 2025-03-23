@@ -146,7 +146,6 @@
 const express = require("express");
 const router = express.Router();
 const CheckInOut = require("../models/CheckInOut");
-const moment = require("moment-timezone");
 
 // تسجيل الدخول (Check-in)
 router.post("/checkin", async (req, res) => {
@@ -198,7 +197,7 @@ router.post("/checkout", async (req, res) => {
       return res.status(400).json({ error: "User already checked out today" });
     }
 
-    checkInRecord.checkOutTime = moment().tz(timezone).format("YYYY-MM-DD HH:mm:ss");
+    checkInRecord.checkOutTime = new Date();
     checkInRecord.status = "checked-out";
 
     await checkInRecord.save();
