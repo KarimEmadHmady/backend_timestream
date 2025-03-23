@@ -142,7 +142,6 @@
 
 
 
-
 const express = require("express");
 const router = express.Router();
 const CheckInOut = require("../models/CheckInOut");
@@ -162,7 +161,7 @@ router.post("/checkin", async (req, res) => {
       lastName,
       email,
       checkInTime: new Date(checkInTime).toISOString(),
-            status: "checked-in",
+      status: "checked-in",
       date: new Date(),
     });
 
@@ -197,8 +196,7 @@ router.post("/checkout", async (req, res) => {
       return res.status(400).json({ error: "User already checked out today" });
     }
 
-    // ✅ تعريف checkOutTime قبل الاستخدام
-    const checkOutTime = new Date().toISOString();
+    const checkOutTime = new Date().toISOString(); // وقت الخروج بتنسيق ISO
     checkInRecord.checkOutTime = checkOutTime;
     checkInRecord.status = "checked-out";
 
@@ -214,10 +212,6 @@ router.post("/checkout", async (req, res) => {
     res.status(500).json({ error: "Failed to record check-out" });
   }
 });
-
-
-
-
 
 // استرجاع السجل لآخر 30 يومًا
 router.get("/history/:userId", async (req, res) => {
