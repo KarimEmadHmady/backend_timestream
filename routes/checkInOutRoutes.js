@@ -197,8 +197,8 @@ router.post("/checkout", async (req, res) => {
       return res.status(400).json({ error: "User already checked out today" });
     }
 
-    checkInRecord.checkOutTime = new Date().toISOString(); // ✅ ضمان تخزين الوقت بشكل صحيح في UTC
-    checkInRecord.status = "checked-out";
+    checkInRecord.checkOutTime = new Date();
+        checkInRecord.status = "checked-out";
 
     await checkInRecord.save();
 
