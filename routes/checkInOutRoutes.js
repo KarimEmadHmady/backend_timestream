@@ -162,7 +162,7 @@ router.post("/checkin", async (req, res) => {
       lastName,
       email,
       checkInTime: new Date(checkInTime).toISOString(),
-      status: "checked-in",
+            status: "checked-in",
       date: new Date(),
     });
 
@@ -197,7 +197,7 @@ router.post("/checkout", async (req, res) => {
       return res.status(400).json({ error: "User already checked out today" });
     }
 
-    checkInRecord.checkOutTime = new Date();
+    checkInRecord.checkOutTime = new Date(checkOutTime).toISOString(),
     checkInRecord.status = "checked-out";
 
     await checkInRecord.save();
