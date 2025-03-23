@@ -179,10 +179,9 @@ router.post("/checkout", async (req, res) => {
   const { userId } = req.body;
 
   try {
-    const startOfDay = new Date();
-    startOfDay.setUTCHours(0, 0, 0, 0);
-    const endOfDay = new Date();
-    endOfDay.setUTCHours(23, 59, 59, 999);
+    const now = new Date();
+    const startOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
+    const endOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999));
 
     const checkInRecord = await CheckInOut.findOne({
       userId,
@@ -198,7 +197,7 @@ router.post("/checkout", async (req, res) => {
       return res.status(400).json({ error: "User already checked out today" });
     }
 
-    checkInRecord.checkOutTime = new Date().toISOString(); // ✅ حل المشكلة بالتنسيق الصحيح
+    checkInRecord.checkOutTime = new Date().toISOString(); // ✅ ضمان تخزين الوقت بشكل صحيح في UTC
     checkInRecord.status = "checked-out";
 
     await checkInRecord.save();
@@ -213,6 +212,7 @@ router.post("/checkout", async (req, res) => {
     res.status(500).json({ error: "Failed to record check-out" });
   }
 });
+
 
 
 
