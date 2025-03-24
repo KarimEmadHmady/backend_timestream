@@ -16,10 +16,11 @@ router.post("/checkin", async (req, res) => {
       firstName,
       lastName,
       email,
-      checkInTime: new Date(checkInTime), // Store as Date object
+      checkInTime: new Date(checkInTime), // هيتسجل كـ UTC مباشرة
       status: "checked-in",
-      date: new Date(),
+      date: new Date(), // تأكد إنه UTC
     });
+    
 
     await checkInRecord.save();
     res.status(200).json({ message: "Check-in recorded successfully" });
@@ -62,6 +63,7 @@ router.post("/checkout", async (req, res) => {
       checkInTime: new Date(checkInRecord.checkInTime).toLocaleString("en-US", { timeZone: "Africa/Cairo" }),
       checkOutTime: new Date(checkInRecord.checkOutTime).toLocaleString("en-US", { timeZone: "Africa/Cairo" }),
     });
+    
   } catch (error) {
     console.error("Error in checkout route:", error);
     res.status(500).json({ error: "Failed to record check-out" });
