@@ -34,7 +34,7 @@ router.post("/checkout", async (req, res) => {
   const { userId, checkOutTime } = req.body;
 
   if (!checkOutTime) {
-    return res.status(400).json({ error: "يجب إرسال وقت تسجيل الخروج من الجهاز" });
+    return res.status(400).json({ error: "The device logout time must be sent." });
   }
 
   try {
@@ -47,7 +47,7 @@ router.post("/checkout", async (req, res) => {
 
     if (!checkInRecord) {
       console.log("❌ No check-in record found for this user");
-      return res.status(404).json({ error: "لا يوجد تسجيل دخول لهذا المستخدم" });
+      return res.status(404).json({ error: "There is no login for this user" });
     }
 
     checkInRecord.checkOutTime = checkOutTime; 
@@ -65,7 +65,7 @@ router.post("/checkout", async (req, res) => {
 
   } catch (error) {
     console.error("🔥 Error in checkout route:", error);
-    res.status(500).json({ error: "فشل في تسجيل الخروج، حاول مرة أخرى" });
+    res.status(500).json({ error: "Failed to log out, try again" });
   }
 });
 
