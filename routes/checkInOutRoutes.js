@@ -2,7 +2,85 @@ const express = require("express");
 const router = express.Router();
 const CheckInOut = require("../models/CheckInOut");
 
-// Check-in
+// // Check-in
+// router.post("/checkin", async (req, res) => {
+//   const { userId, firstName, lastName, email, checkInTime } = req.body;
+
+//   if (!userId || !checkInTime) {
+//     return res.status(400).json({ error: "User ID and check-in time are required" });
+//   }
+
+//   try {
+//     const checkInRecord = new CheckInOut({
+//       userId,
+//       firstName,
+//       lastName,
+//       email,
+//       checkInTime, // بيتم إرساله كنص من الـ Frontend
+//       status: "checked-in",
+//       date: checkInTime, // هيتم حفظه بنفس التوقيت بدون تعديل
+//     });
+//     await checkInRecord.save();
+    
+//     res.status(200).json({ message: "Check-in recorded successfully" });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ error: "Failed to record check-in" });
+//   }
+// });
+
+// // Check-out
+// router.post("/checkout", async (req, res) => {
+//   const { userId } = req.body;
+
+//   try {
+//     const now = new Date();
+//     const startOfDay = new Date(now.setHours(0, 0, 0, 0));
+//     const endOfDay = new Date(now.setHours(23, 59, 59, 999));
+
+//     console.log(`🔍 Checking out user: ${userId} | Date: ${now.toISOString()}`);
+
+//     // البحث عن أحدث عملية تسجيل دخول لليوم الحالي
+//     const checkInRecord = await CheckInOut.findOne({
+//       userId,
+//       checkInTime: { $gte: startOfDay.toISOString(), $lt: endOfDay.toISOString() },
+//       status: "checked-in",
+//     }).sort({ checkInTime: -1 });
+
+//     if (!checkInRecord) {
+//       console.log("❌ No check-in record found for this user today");
+//       return res.status(404).json({ error: "لا يوجد تسجيل دخول لهذا المستخدم اليوم" });
+//     }
+
+//     if (checkInRecord.status === "checked-out") {
+//       console.log("⚠️ User already checked out today");
+//       return res.status(400).json({ error: "تم تسجيل الخروج لهذا المستخدم بالفعل اليوم" });
+//     }
+
+//     // تسجيل وقت الخروج وتحويله إلى String
+//     const checkOutTime = new Date().toLocaleString("en-US", { timeZone: "Africa/Cairo" });
+
+//     checkInRecord.checkOutTime = checkOutTime;
+//     checkInRecord.status = "checked-out";
+
+//     await checkInRecord.save();
+
+//     console.log("✅ Checkout successful:", { checkInTime: checkInRecord.checkInTime, checkOutTime });
+
+//     res.status(200).json({
+//       message: "تم تسجيل الخروج بنجاح",
+//       checkInTime: checkInRecord.checkInTime,
+//       checkOutTime,
+//     });
+
+//   } catch (error) {
+//     console.error("🔥 Error in checkout route:", error);
+//     res.status(500).json({ error: "فشل في تسجيل الخروج، حاول مرة أخرى" });
+//   }
+// });
+
+
+// ✅ Check-in
 router.post("/checkin", async (req, res) => {
   const { userId, firstName, lastName, email, checkInTime } = req.body;
 
@@ -11,25 +89,28 @@ router.post("/checkin", async (req, res) => {
   }
 
   try {
+    const checkInDate = new Date(checkInTime); // نحوله لـ Date حقيقي
+
     const checkInRecord = new CheckInOut({
       userId,
       firstName,
       lastName,
       email,
-      checkInTime, // بيتم إرساله كنص من الـ Frontend
+      checkInTime: checkInDate, // نخزنه كـ Date
       status: "checked-in",
-      date: checkInTime, // هيتم حفظه بنفس التوقيت بدون تعديل
+      date: new Date(checkInDate.setHours(0, 0, 0, 0)), // نخزن التاريخ فقط بدون توقيت
     });
+
     await checkInRecord.save();
-    
     res.status(200).json({ message: "Check-in recorded successfully" });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to record check-in" });
   }
 });
 
-// Check-out
+// ✅ Check-out
 router.post("/checkout", async (req, res) => {
   const { userId } = req.body;
 
@@ -40,10 +121,10 @@ router.post("/checkout", async (req, res) => {
 
     console.log(`🔍 Checking out user: ${userId} | Date: ${now.toISOString()}`);
 
-    // البحث عن أحدث عملية تسجيل دخول لليوم الحالي
+    // البحث عن أحدث تسجيل دخول لهذا المستخدم اليوم
     const checkInRecord = await CheckInOut.findOne({
       userId,
-      checkInTime: { $gte: startOfDay.toISOString(), $lt: endOfDay.toISOString() },
+      date: startOfDay, // نبحث حسب نفس التاريخ اللي تم حفظه في check-in
       status: "checked-in",
     }).sort({ checkInTime: -1 });
 
@@ -57,8 +138,8 @@ router.post("/checkout", async (req, res) => {
       return res.status(400).json({ error: "تم تسجيل الخروج لهذا المستخدم بالفعل اليوم" });
     }
 
-    // تسجيل وقت الخروج وتحويله إلى String
-    const checkOutTime = new Date().toLocaleString("en-US", { timeZone: "Africa/Cairo" });
+    // تسجيل وقت الخروج
+    const checkOutTime = new Date();
 
     checkInRecord.checkOutTime = checkOutTime;
     checkInRecord.status = "checked-out";
@@ -69,8 +150,8 @@ router.post("/checkout", async (req, res) => {
 
     res.status(200).json({
       message: "تم تسجيل الخروج بنجاح",
-      checkInTime: checkInRecord.checkInTime,
-      checkOutTime,
+      checkInTime: new Date(checkInRecord.checkInTime).toLocaleString("en-US", { timeZone: "Africa/Cairo" }),
+      checkOutTime: checkOutTime.toLocaleString("en-US", { timeZone: "Africa/Cairo" }),
     });
 
   } catch (error) {
