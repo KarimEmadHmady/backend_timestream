@@ -112,20 +112,14 @@ router.get("/history/:userId", async (req, res) => {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    // ✅ تحويل `checkInTime` لنوع تاريخ قبل الفلترة
     let records = await CheckInOut.find({
       userId,
-      checkInTime: { $gte: thirtyDaysAgo.toISOString() } // 🔥 تأكد إنها Date
+      checkInTime: { $gte: thirtyDaysAgo.toISOString() }
     }).sort({ checkInTime: -1 });
 
-    console.log("Fetched Records:", records); // ✅ اشوف البيانات اللي راجعة
+    console.log("Fetched Records:", records); // ✅ تأكد أن البيانات راجعة بشكل صحيح
 
-    records = records.map(record => ({
-      ...record._doc,
-      checkInTime: record.checkInTime ? new Date(record.checkInTime).toLocaleString("en-US", { timeZone: "Africa/Cairo" }) : "-",
-      checkOutTime: record.checkOutTime ? new Date(record.checkOutTime).toLocaleString("en-US", { timeZone: "Africa/Cairo" }) : "-",
-    }));
-
+    // ❌ لا تقم بتغيير التوقيت
     res.status(200).json(records);
   } catch (error) {
     console.error(error);
