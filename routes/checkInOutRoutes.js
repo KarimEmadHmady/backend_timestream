@@ -16,13 +16,12 @@ router.post("/checkin", async (req, res) => {
       firstName,
       lastName,
       email,
-      checkInTime: new Date(checkInTime), // هيتسجل كـ UTC مباشرة
+      checkInTime, // بيتم إرساله كنص من الـ Frontend
       status: "checked-in",
-      date: new Date(), // تأكد إنه UTC
+      date: checkInTime, // هيتم حفظه بنفس التوقيت بدون تعديل
     });
-    
-
     await checkInRecord.save();
+    
     res.status(200).json({ message: "Check-in recorded successfully" });
   } catch (error) {
     console.error(error);
