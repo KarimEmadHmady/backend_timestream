@@ -117,12 +117,11 @@ router.get("/history/:userId", async (req, res) => {
       checkInTime: { $gte: thirtyDaysAgo }
     }).sort({ checkInTime: -1 });
 
+    // ✅ تأكد إنك بتحول النصوص إلى تواريخ صحيحة قبل إرسالها للفرونت
     records = records.map(record => ({
       ...record._doc,
-      checkInTime: new Date(record.checkInTime).toLocaleString("en-US", { timeZone: "Africa/Cairo" }),
-      checkOutTime: record.checkOutTime
-        ? new Date(record.checkOutTime).toLocaleString("en-US", { timeZone: "Africa/Cairo" })
-        : null,
+      checkInTime: record.checkInTime ? new Date(Date.parse(record.checkInTime)).toLocaleString("en-US", { timeZone: "Africa/Cairo" }) : "-",
+      checkOutTime: record.checkOutTime ? new Date(Date.parse(record.checkOutTime)).toLocaleString("en-US", { timeZone: "Africa/Cairo" }) : "-",
     }));
 
     res.status(200).json(records);
@@ -131,6 +130,7 @@ router.get("/history/:userId", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch user history" });
   }
 });
+
 
 // Fetch all users
 router.get("/all-users", async (req, res) => {
