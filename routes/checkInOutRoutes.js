@@ -58,7 +58,7 @@ router.post("/checkout", async (req, res) => {
     console.log("✅ Checkout successful:", { checkInTime: checkInRecord.checkInTime, checkOutTime });
 
     res.status(200).json({
-      message: "تم تسجيل الخروج بنجاح",
+      message: "Check-Out recorded successfully",
       checkInTime: checkInRecord.checkInTime,
       checkOutTime,
     });
