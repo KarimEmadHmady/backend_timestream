@@ -31,32 +31,27 @@ router.post("/checkin", async (req, res) => {
 
 // // Check-out
 router.post("/checkout", async (req, res) => {
-  const { userId, checkOutTime } = req.body; // استقبال checkOutTime من المستخدم
+  const { userId, checkOutTime } = req.body;
 
   if (!checkOutTime) {
     return res.status(400).json({ error: "يجب إرسال وقت تسجيل الخروج من الجهاز" });
   }
 
   try {
-    const now = new Date();
-    const startOfDay = new Date(now.setHours(0, 0, 0, 0));
-    const endOfDay = new Date(now.setHours(23, 59, 59, 999));
-
     console.log(`🔍 Checking out user: ${userId} | Time from client: ${checkOutTime}`);
 
-    // البحث عن أحدث عملية تسجيل دخول بدون تسجيل خروج
+    // البحث عن أحدث تسجيل دخول بنفس تنسيق الوقت المخزن
     const checkInRecord = await CheckInOut.findOne({
       userId,
-      checkInTime: { $gte: startOfDay.toISOString(), $lt: endOfDay.toISOString() },
-      checkOutTime: { $exists: false }
-    }).sort({ checkInTime: -1 });
+      checkOutTime: { $exists: false }, // لم يتم تسجيل خروج بعد
+    }).sort({ _id: -1 }); // نحصل على آخر تسجيل دخول
 
     if (!checkInRecord) {
-      console.log("❌ No check-in record found for this user today");
-      return res.status(404).json({ error: "لا يوجد تسجيل دخول لهذا المستخدم اليوم" });
+      console.log("❌ No check-in record found for this user");
+      return res.status(404).json({ error: "لا يوجد تسجيل دخول لهذا المستخدم" });
     }
 
-    checkInRecord.checkOutTime = checkOutTime; // حفظ الوقت القادم من الجهاز كما هو
+    checkInRecord.checkOutTime = checkOutTime; // تخزين وقت الخروج
     checkInRecord.status = "checked-out";
 
     await checkInRecord.save();
@@ -74,6 +69,7 @@ router.post("/checkout", async (req, res) => {
     res.status(500).json({ error: "فشل في تسجيل الخروج، حاول مرة أخرى" });
   }
 });
+
 
 
 
