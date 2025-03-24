@@ -112,16 +112,18 @@ router.get("/history/:userId", async (req, res) => {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
+    // ✅ تحويل `checkInTime` لنوع تاريخ قبل الفلترة
     let records = await CheckInOut.find({
       userId,
-      checkInTime: { $gte: thirtyDaysAgo }
+      checkInTime: { $gte: thirtyDaysAgo.toISOString() } // 🔥 تأكد إنها Date
     }).sort({ checkInTime: -1 });
 
-    // ✅ تأكد إنك بتحول النصوص إلى تواريخ صحيحة قبل إرسالها للفرونت
+    console.log("Fetched Records:", records); // ✅ اشوف البيانات اللي راجعة
+
     records = records.map(record => ({
       ...record._doc,
-      checkInTime: record.checkInTime ? new Date(Date.parse(record.checkInTime)).toLocaleString("en-US", { timeZone: "Africa/Cairo" }) : "-",
-      checkOutTime: record.checkOutTime ? new Date(Date.parse(record.checkOutTime)).toLocaleString("en-US", { timeZone: "Africa/Cairo" }) : "-",
+      checkInTime: record.checkInTime ? new Date(record.checkInTime).toLocaleString("en-US", { timeZone: "Africa/Cairo" }) : "-",
+      checkOutTime: record.checkOutTime ? new Date(record.checkOutTime).toLocaleString("en-US", { timeZone: "Africa/Cairo" }) : "-",
     }));
 
     res.status(200).json(records);
@@ -130,6 +132,7 @@ router.get("/history/:userId", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch user history" });
   }
 });
+
 
 
 // Fetch all users
