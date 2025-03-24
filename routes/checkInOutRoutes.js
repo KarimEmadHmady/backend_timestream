@@ -74,6 +74,36 @@ router.post("/checkout", async (req, res) => {
 
 
 // Fetch history for the last 30 days
+// router.get("/history/:userId", async (req, res) => {
+//   const { userId } = req.params;
+//   console.log(`Fetching history for user: ${userId}`);
+
+//   try {
+//     const thirtyDaysAgo = new Date();
+//     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+//     let records = await CheckInOut.find({
+//       userId,
+//       date: { $gte: thirtyDaysAgo },
+//     }).sort({ date: -1 });
+
+//     // Convert times to Cairo timezone for response
+//     records = records.map(record => ({
+//       ...record._doc,
+//       checkInTime: new Date(record.checkInTime).toLocaleString("en-US", { timeZone: "Africa/Cairo" }),
+//       checkOutTime: record.checkOutTime
+//         ? new Date(record.checkOutTime).toLocaleString("en-US", { timeZone: "Africa/Cairo" })
+//         : null,
+//     }));
+
+//     res.status(200).json(records);
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ error: "Failed to fetch user history" });
+//   }
+// });
+
+
 router.get("/history/:userId", async (req, res) => {
   const { userId } = req.params;
   console.log(`Fetching history for user: ${userId}`);
@@ -84,10 +114,9 @@ router.get("/history/:userId", async (req, res) => {
 
     let records = await CheckInOut.find({
       userId,
-      date: { $gte: thirtyDaysAgo },
-    }).sort({ date: -1 });
+      checkInTime: { $gte: thirtyDaysAgo }
+    }).sort({ checkInTime: -1 });
 
-    // Convert times to Cairo timezone for response
     records = records.map(record => ({
       ...record._doc,
       checkInTime: new Date(record.checkInTime).toLocaleString("en-US", { timeZone: "Africa/Cairo" }),
