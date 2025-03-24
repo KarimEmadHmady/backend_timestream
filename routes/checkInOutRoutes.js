@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const CheckInOut = require("../models/CheckInOut");
 
-// // Check-in
+ // Check-in
 router.post("/checkin", async (req, res) => {
   const { userId, firstName, lastName, email, checkInTime } = req.body;
 
@@ -16,9 +16,9 @@ router.post("/checkin", async (req, res) => {
       firstName,
       lastName,
       email,
-      checkInTime, // بيتم إرساله كنص من الـ Frontend
+      checkInTime, 
       status: "checked-in",
-      date: checkInTime, // هيتم حفظه بنفس التوقيت بدون تعديل
+      date: checkInTime, 
     });
     await checkInRecord.save();
     
@@ -29,7 +29,7 @@ router.post("/checkin", async (req, res) => {
   }
 });
 
-// // Check-out
+// Check-out
 router.post("/checkout", async (req, res) => {
   const { userId, checkOutTime } = req.body;
 
@@ -40,18 +40,17 @@ router.post("/checkout", async (req, res) => {
   try {
     console.log(`🔍 Checking out user: ${userId} | Time from client: ${checkOutTime}`);
 
-    // البحث عن أحدث تسجيل دخول بنفس تنسيق الوقت المخزن
     const checkInRecord = await CheckInOut.findOne({
       userId,
-      checkOutTime: { $exists: false }, // لم يتم تسجيل خروج بعد
-    }).sort({ _id: -1 }); // نحصل على آخر تسجيل دخول
+      checkOutTime: { $exists: false }, 
+    }).sort({ _id: -1 }); 
 
     if (!checkInRecord) {
       console.log("❌ No check-in record found for this user");
       return res.status(404).json({ error: "لا يوجد تسجيل دخول لهذا المستخدم" });
     }
 
-    checkInRecord.checkOutTime = checkOutTime; // تخزين وقت الخروج
+    checkInRecord.checkOutTime = checkOutTime; 
     checkInRecord.status = "checked-out";
 
     await checkInRecord.save();
@@ -70,40 +69,6 @@ router.post("/checkout", async (req, res) => {
   }
 });
 
-
-
-
-// Fetch history for the last 30 days
-// router.get("/history/:userId", async (req, res) => {
-//   const { userId } = req.params;
-//   console.log(`Fetching history for user: ${userId}`);
-
-//   try {
-//     const thirtyDaysAgo = new Date();
-//     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-//     let records = await CheckInOut.find({
-//       userId,
-//       date: { $gte: thirtyDaysAgo },
-//     }).sort({ date: -1 });
-
-//     // Convert times to Cairo timezone for response
-//     records = records.map(record => ({
-//       ...record._doc,
-//       checkInTime: new Date(record.checkInTime).toLocaleString("en-US", { timeZone: "Africa/Cairo" }),
-//       checkOutTime: record.checkOutTime
-//         ? new Date(record.checkOutTime).toLocaleString("en-US", { timeZone: "Africa/Cairo" })
-//         : null,
-//     }));
-
-//     res.status(200).json(records);
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ error: "Failed to fetch user history" });
-//   }
-// });
-
-
 router.get("/history/:userId", async (req, res) => {
   const { userId } = req.params;
   console.log(`Fetching history for user: ${userId}`);
@@ -117,9 +82,8 @@ router.get("/history/:userId", async (req, res) => {
       checkInTime: { $gte: thirtyDaysAgo.toISOString() }
     }).sort({ checkInTime: -1 });
 
-    console.log("Fetched Records:", records); // ✅ تأكد أن البيانات راجعة بشكل صحيح
+    console.log("Fetched Records:", records); 
 
-    // ❌ لا تقم بتغيير التوقيت
     res.status(200).json(records);
   } catch (error) {
     console.error(error);
